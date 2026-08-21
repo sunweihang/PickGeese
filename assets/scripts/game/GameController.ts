@@ -23,11 +23,9 @@ import { ITEM_DEFS, ItemKind, LEVELS } from './ItemDef';
 import {
   GameItem,
   crateLimitHalf,
-  crateLimitTop,
   createArena,
   createItem,
   freezeItem,
-  packCratePositions,
   pileQuat,
   setItemKinematic,
 } from './ItemFactory';
@@ -163,10 +161,10 @@ export class GameController {
     this._hud?.setSlots([]);
     this._hud?.setOutSlots([]);
     this._refreshCounts();
-    const wait = this._level === 0 ? 0.25 : 1.8;
+    const wait = this._level === 0 ? 0.25 : 1.85;
     this._delay(wait, () => {
       if (this._phase !== 'play') return;
-      this._freezeBoxPile();
+      this._restVisiblePile();
       this._canOperate = true;
       if (this._level === 0) this._hud?.tip('点箱里的物品，三个相同会消除');
     });
@@ -205,12 +203,16 @@ export class GameController {
       }
       return;
     }
-    const spots = packCratePositions(kinds, crateLimitHalf * 0.96, 0.56);
-    for (let i = 0; i < kinds.length; i++) {
+    const n = kinds.length;
+    const half = Math.max(0.8, crateLimitHalf - 0.16);
+    for (let i = 0; i < n; i++) {
       const item = createItem(kinds[i], this._objGroup);
-      const p = spots[i] ?? new Vec3(0, 0.8 + i * 0.35, 0);
-      item.node.setPosition(p.x, p.y + 0.08, p.z);
+      const x = (Math.random() * 2 - 1) * half;
+      const z = (Math.random() * 2 - 1) * half;
+      const y = 0.82 + 2.35 * (i / n) + Math.random() * 0.28;
+      item.node.setPosition(x, y, z);
       item.node.setRotation(pileQuat());
+      setItemKinematic(item, false);
       this._items.push(item);
       this._boxItems.push(item);
     }
@@ -248,9 +250,9 @@ export class GameController {
       .start();
   }
 
-  private _freezeBoxPile(): void {
+  private _restVisiblePile(): void {
     for (const it of this._boxItems) {
-      if (!it.node.isValid) continue;
+      if (!it.node.isValid || it.buried) continue;
       freezeItem(it);
     }
   }
@@ -258,26 +260,18 @@ export class GameController {
   private _containBox(): void {
     if (this._phase !== 'play') return;
     const half = crateLimitHalf;
-    const maxY = crateLimitTop + 8;
-    const vel = new Vec3();
     for (const it of this._boxItems) {
       if (!it.node.isValid || !it.body.isValid) continue;
       const p = it.node.position;
-      const out = p.x < -half || p.x > half || p.z < -half || p.z > half || p.y <= 0.32 || p.y >= maxY;
-      if (out) {
-        it.node.setPosition(
-          Math.max(-half, Math.min(half, p.x)),
-          Math.max(0.75, Math.min(crateLimitTop + 1.2, p.y)),
-          Math.max(-half, Math.min(half, p.z)),
-        );
-        it.body.setLinearVelocity(Vec3.ZERO);
-        it.body.setAngularVelocity(Vec3.ZERO);
-        if (this._canOperate) freezeItem(it);
-        continue;
-      }
-      if (!this._canOperate || it.body.type !== ERigidBodyType.DYNAMIC) continue;
-      it.body.getLinearVelocity(vel);
-      if (vel.lengthSqr() < 0.16) freezeItem(it);
+      if (p.x >= -half && p.x <= half && p.z >= -half && p.z <= half && p.y > 0.22) continue;
+      it.node.setPosition(
+        Math.max(-half, Math.min(half, p.x)),
+        Math.max(0.55, p.y),
+        Math.max(-half, Math.min(half, p.z)),
+      );
+      it.body.setLinearVelocity(Vec3.ZERO);
+      it.body.setAngularVelocity(Vec3.ZERO);
+      if (this._canOperate) freezeItem(it);
     }
   }
 
@@ -328,6 +322,7 @@ export class GameController {
     for (let i = 0; i < this._items.length; i++) {
       const it = this._items[i];
       if (!it.node.isValid) continue;
+      if (it.buried) continue;
       if (it.inOut) out.push(it);
       else if (it.inBox) box.push(it);
     }
@@ -612,21 +607,25 @@ export class GameController {
     this._chaosLeft--;
     this._hud?.setToolCounts(this._outLeft, this._collectLeft, this._chaosLeft);
     this._canOperate = false;
+    const half = Math.max(0.8, crateLimitHalf - 0.16);
     shuffle(this._boxItems);
-    const kinds = this._boxItems.map((it) => it.def.id);
-    const spots = packCratePositions(kinds, crateLimitHalf * 0.96, 0.56);
+    const n = Math.max(1, this._boxItems.length);
     for (let i = 0; i < this._boxItems.length; i++) {
       const it = this._boxItems[i];
+      if (!it.node.isValid) continue;
       setItemKinematic(it, false);
-      const p = spots[i] ?? it.node.position;
-      it.node.setPosition(p.x, p.y + 0.1, p.z);
+      it.node.setPosition(
+        (Math.random() * 2 - 1) * half,
+        0.82 + 2.0 * (i / n) + Math.random() * 0.22,
+        (Math.random() * 2 - 1) * half,
+      );
       it.node.setRotation(pileQuat());
       it.body.wakeUp();
     }
     this._hud?.tip('打乱！');
-    this._delay(1.2, () => {
+    this._delay(1.6, () => {
       if (this._phase !== 'play') return;
-      this._freezeBoxPile();
+      this._restVisiblePile();
       this._canOperate = true;
     });
   }
@@ -658,18 +657,21 @@ export class GameController {
   private _onShake(): void {
     if (!this._canOperate || !this._shakeReady || this._level < 1) return;
     this._shakeReady = false;
-    const n = Math.max(1, this._boxItems.length);
+    const live: GameItem[] = [];
     for (const it of this._boxItems) {
-      if (it.body.type !== ERigidBodyType.DYNAMIC) {
-        setItemKinematic(it, false);
-      }
+      if (!it.node.isValid || it.buried) continue;
+      setItemKinematic(it, false);
+      live.push(it);
+    }
+    const n = Math.max(1, live.length);
+    for (const it of live) {
       it.body.wakeUp();
       const f = new Vec3((Math.random() - 0.5) * 8, 4 + Math.random() * 4, (Math.random() - 0.5) * 8);
       f.multiplyScalar(2.2 + Math.min(n, 80) * 0.02);
       it.body.applyForce(f);
     }
     this._delay(1.2, () => {
-      if (this._phase === 'play') this._freezeBoxPile();
+      if (this._phase === 'play') this._restVisiblePile();
       this._shakeReady = true;
     });
   }

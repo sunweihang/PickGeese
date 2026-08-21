@@ -174,17 +174,17 @@ export const LEVELS: LevelSpec[] = [
   {
     title: '第一箱',
     kinds: ALL_KINDS,
-    copies: 12,
+    copies: 16,
     dropHeight: 5.8,
     boxScale: 1,
-    spread: 3.4,
+    spread: 4.6,
   },
   {
     title: '第二箱',
     kinds: ALL_KINDS,
-    copies: 18,
+    copies: 24,
     dropHeight: 7.6,
     boxScale: 1.08,
-    spread: 3.6,
+    spread: 5.0,
   },
 ];
