@@ -5,6 +5,7 @@ import {
   EventTouch,
   Input,
   Layers,
+  MeshRenderer,
   Node,
   PhysicsSystem,
   Quat,
@@ -274,9 +275,9 @@ export class GameController {
     return e.getUILocation().y > 200;
   }
 
-  private _onTouchEnd = (e: EventTouch): void => {
+  private _onTouchEnd = (_e: EventTouch): void => {
     if (!this._canOperate || this._phase !== 'play') return;
-    const item = this._hover ?? this._hitItem(e);
+    const item = this._hover;
     this._offHover();
     if (!item || (!item.inBox && !item.inOut)) return;
     this._pick(item);
@@ -301,23 +302,30 @@ export class GameController {
     if (!this._mainCam) return null;
     const loc = e.getLocation();
     this._mainCam.screenPointToRay(loc.x, loc.y, _ray);
-    if (!PhysicsSystem.instance.raycast(_ray)) return null;
-    const hits = PhysicsSystem.instance.raycastResults;
-    for (let i = 0; i < hits.length; i++) {
-      const item = this._itemOf(hits[i].collider.node);
-      if (item && (item.inBox || item.inOut)) return item;
+    const out: GameItem[] = [];
+    const box: GameItem[] = [];
+    for (let i = 0; i < this._items.length; i++) {
+      const it = this._items[i];
+      if (!it.node.isValid) continue;
+      if (it.inOut) out.push(it);
+      else if (it.inBox) box.push(it);
+    }
+    box.sort((a, b) => b.node.position.y - a.node.position.y);
+    for (let i = 0; i < out.length; i++) {
+      if (this._rayHitsMesh(out[i])) return out[i];
+    }
+    for (let i = 0; i < box.length; i++) {
+      if (this._rayHitsMesh(box[i])) return box[i];
     }
     return null;
   }
 
-  private _itemOf(node: Node | null): GameItem | null {
-    let n = node;
-    while (n) {
-      const found = this._items.find((it) => it.node === n);
-      if (found) return found;
-      n = n.parent;
-    }
-    return null;
+  private _rayHitsMesh(item: GameItem): boolean {
+    const vis = item.node.getChildByName('mesh') ?? item.node;
+    const mr = vis.getComponent(MeshRenderer) ?? item.node.getComponentInChildren(MeshRenderer);
+    const model = mr?.model;
+    if (!model) return false;
+    return !!geometry.intersect.rayModel(_ray, model);
   }
 
   private _pick(item: GameItem, ignoreFull = false): void {
@@ -566,7 +574,7 @@ export class GameController {
   }
 
   private _disableCollider(item: GameItem, off: boolean): void {
-    const cols = item.node.getComponents(Collider);
+    const cols = item.node.getComponentsInChildren(Collider);
     for (const c of cols) c.enabled = !off;
   }
 

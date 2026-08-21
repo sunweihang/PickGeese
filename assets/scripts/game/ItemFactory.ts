@@ -14,7 +14,7 @@ import {
   utils,
 } from 'cc';
 import { ITEM_DEFS, ItemDef, ItemKind } from './ItemDef';
-import { spawnOriginModel } from './OriginModels';
+import { originMeshSize, spawnOriginModel } from './OriginModels';
 import { skinOf } from './SkinTex';
 import { ITEM_PHYS } from './Theme';
 import { muteShadow, toyMat } from './ToyLit';
@@ -205,7 +205,7 @@ function decorate(root: Node, def: ItemDef): void {
   root.setScale(s, s, s);
 }
 
-function ensureBody(node: Node, def: ItemDef): RigidBody {
+function ensureBody(node: Node, def: ItemDef, skipCollider = false): RigidBody {
   let body = node.getComponent(RigidBody);
   if (body) {
     body.type = ERigidBodyType.DYNAMIC;
@@ -220,19 +220,33 @@ function ensureBody(node: Node, def: ItemDef): RigidBody {
   body.useGravity = true;
   body.allowSleep = true;
   const pm = getPhysMat();
-  if (!node.getComponent(SphereCollider) && !node.getComponent(BoxCollider)) {
-    if (def.collider === 'sphere') {
-      const col = node.addComponent(SphereCollider);
-      col.radius = def.size;
-      col.material = pm;
-    } else {
-      const col = node.addComponent(BoxCollider);
-      const s = def.size;
-      col.size = new Vec3(s * 1.5, s * 0.7, s * 0.7);
-      col.material = pm;
-    }
+  if (!skipCollider && !node.getComponent(SphereCollider) && !node.getComponent(BoxCollider)) {
+    addFallbackCollider(node, def, pm);
   }
   return body;
+}
+
+function addFallbackCollider(node: Node, def: ItemDef, pm: PhysicsMaterial): void {
+  if (def.collider === 'sphere') {
+    const col = node.addComponent(SphereCollider);
+    col.radius = def.size;
+    col.material = pm;
+  } else {
+    const col = node.addComponent(BoxCollider);
+    const s = def.size;
+    col.size = new Vec3(s * 1.5, s * 0.7, s * 0.7);
+    col.material = pm;
+  }
+}
+
+function addMeshCollider(root: Node, kind: ItemKind): boolean {
+  const vis = root.getChildByName('mesh');
+  const size = originMeshSize(kind);
+  if (!vis || !size) return false;
+  const col = vis.addComponent(BoxCollider);
+  col.size = new Vec3(Math.max(0.08, size.x * 0.88), Math.max(0.08, size.y * 0.88), Math.max(0.08, size.z * 0.88));
+  col.material = getPhysMat();
+  return true;
 }
 
 export function createItem(kind: ItemKind, parent: Node): GameItem {
@@ -240,7 +254,8 @@ export function createItem(kind: ItemKind, parent: Node): GameItem {
   const origin = spawnOriginModel(kind, parent);
   if (origin) {
     origin.name = `item_${kind}`;
-    const body = ensureBody(origin, def);
+    const fitted = addMeshCollider(origin, kind);
+    const body = ensureBody(origin, def, fitted);
     return { node: origin, def, body, inBox: true, inOut: false, landed: false };
   }
 

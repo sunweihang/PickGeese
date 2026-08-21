@@ -30,6 +30,7 @@ type Packed = {
   mesh: Mesh;
   tex: Texture2D | null;
   extent: number;
+  size: Vec3;
 };
 
 const pack = new Map<string, Packed>();
@@ -123,18 +124,37 @@ async function loadOne(model: string, tint: Color): Promise<Packed | null> {
     geo.max[2] - geo.min[2],
     0.2,
   );
-  const packed: Packed = { mesh: createMesh(geo), tex, extent };
+  const packed: Packed = {
+    mesh: createMesh(geo),
+    tex,
+    extent,
+    size: new Vec3(
+      geo.max[0] - geo.min[0],
+      geo.max[1] - geo.min[1],
+      geo.max[2] - geo.min[2],
+    ),
+  };
   pack.set(model, packed);
   void tint;
   return packed;
 }
 
 export function preloadOriginModels(kinds: ItemKind[]): Promise<void> {
-  const ids = [...new Set(kinds.map((k) => ITEM_DEFS[k].model))];
-  return Promise.all(ids.map((id) => {
-    const kind = kinds.find((k) => ITEM_DEFS[k].model === id)!;
-    return loadOne(id, ITEM_DEFS[kind].color);
-  })).then(() => undefined);
+  // Do not spread Set: TS ES5 emit is [].concat(set), which does not iterate entries.
+  const seen = new Set<string>();
+  const jobs: Promise<Packed | null>[] = [];
+  for (const k of kinds) {
+    const def = ITEM_DEFS[k];
+    if (!def || seen.has(def.model)) continue;
+    seen.add(def.model);
+    jobs.push(loadOne(def.model, def.color));
+  }
+  return Promise.all(jobs).then(() => undefined);
+}
+
+export function originMeshSize(kind: ItemKind): Vec3 | null {
+  const def = ITEM_DEFS[kind];
+  return pack.get(def.model)?.size.clone() ?? null;
 }
 
 export function spawnOriginModel(kind: ItemKind, parent: Node): Node | null {
