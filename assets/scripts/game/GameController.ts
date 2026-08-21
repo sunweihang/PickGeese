@@ -132,6 +132,32 @@ export class GameController {
     this._canOperate = false;
     this._clearWorld();
     this._hud?.showHome();
+    void this._showHomeWorld();
+  }
+
+  private async _showHomeWorld(): Promise<void> {
+    await preloadToyLit();
+    const kinds: ItemKind[] = ['octopus', 'duck', 'icecream', 'crab', 'popsicle'];
+    await preloadOriginModels(kinds);
+    if (this._phase !== 'home') return;
+    this._arena = createArena(this._world, 0.88);
+    if (this._phase !== 'home') return;
+    const spots = [
+      new Vec3(0, 0.95, 0.1),
+      new Vec3(-1.2, 0.82, 0.85),
+      new Vec3(1.15, 0.84, 0.7),
+      new Vec3(-0.85, 0.8, -0.75),
+      new Vec3(0.95, 0.82, -0.7),
+    ];
+    for (let i = 0; i < kinds.length; i++) {
+      const item = createItem(kinds[i], this._objGroup);
+      item.node.setPosition(spots[i] ?? Vec3.ZERO);
+      const q = new Quat();
+      Quat.fromEuler(q, 0, 20 + i * 48, 0);
+      item.node.setRotation(q);
+      freezeItem(item);
+      this._items.push(item);
+    }
   }
 
   private _startFrom(level: number): void {

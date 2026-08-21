@@ -93,20 +93,20 @@ function rgb(c: Color): [number, number, number] {
 
 export function skinOf(kind: string, tint?: Color): Texture2D {
   if (kind === 'wood') {
-    return paint('wood', (u, v) => woodAlbedo(u, v, false), 256, false);
+    return paint('wood3', (u, v) => woodAlbedo(u, v, false), 256, false);
   }
   if (kind === 'woodDark') {
-    return paint('woodDark', (u, v) => woodAlbedo(u, v, true), 256, false);
+    return paint('woodDark3', (u, v) => woodAlbedo(u, v, true), 256, false);
   }
   if (kind === 'woodRail') {
-    return paint('woodRail', (u, v) => {
+    return paint('woodRail3', (u, v) => {
       const edge = u < 0.08 || u > 0.92 || v < 0.12 || v > 0.88 ? 0.72 : 1;
       const c = woodAlbedo(u * 0.4, v, true);
       return [c[0] * edge, c[1] * edge, c[2] * edge];
     }, 128, false);
   }
   if (kind === 'grass') {
-    return paint('grass', (u, v) => {
+    return paint('grass3', (u, v) => {
       const n = hash(u * 6, v * 6, 1);
       const n2 = hash(u * 18, v * 14, 3);
       const tuft = hash(Math.floor(u * 28), Math.floor(v * 28), 5);

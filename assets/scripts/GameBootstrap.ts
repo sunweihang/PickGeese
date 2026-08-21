@@ -43,7 +43,9 @@ export class GameBootstrap extends Component {
     node.setPosition(0, 16.8, 9.15);
     node.lookAt(new Vec3(0, 0.12, 0.28), Vec3.UNIT_Y);
     this._mainCam.fov = 38;
-    this._mainCam.clearColor = new Color(214, 198, 158, 255);
+    this._mainCam.clearColor = new Color(168, 226, 255, 255);
+    this._mainCam.usePostProcess = false;
+    this._mainCam.postProcess = null;
   }
 
   private _tuneLighting(): void {
@@ -54,15 +56,17 @@ export class GameBootstrap extends Component {
     const ambient = scene.globals?.ambient;
     if (ambient) {
       ambient.skyIllum = 26000;
-      ambient.skyColor = new Color(158, 209, 230, 140);
-      ambient.groundAlbedo = new Color(115, 158, 178, 255);
+      ambient.skyColor = new Color(168, 208, 228, 140);
+      ambient.groundAlbedo = new Color(115, 158, 120, 255);
     }
+    const fog = scene.globals?.fog;
+    if (fog) fog.enabled = false;
     const lightNode = scene.getChildByName('Directional Light');
     const light = lightNode?.getComponent(DirectionalLight);
     if (light && lightNode) {
       lightNode.setPosition(8, 16, 10);
       lightNode.setRotationFromEuler(-58, 46, 0);
-      light.color = new Color(255, 232, 204, 255);
+      light.color = new Color(255, 236, 220, 255);
       light.illuminance = 215000;
       light.shadowEnabled = false;
     }

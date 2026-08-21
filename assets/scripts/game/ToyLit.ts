@@ -14,11 +14,16 @@ import {
 const FX = 'fx/brick-lit';
 const cache = new Map<string, Material>();
 
-/** Suck brick look — makeInstancedUnlit(color, 0.62, 0.04, 0). */
-export const SUCK_ROUGH = 0.62;
-export const SUCK_METAL = 0.04;
+/** Glossy candy/jelly defaults — painted skins keep color, lighting adds sheen. */
+export const SUCK_ROUGH = 0.48;
+export const SUCK_METAL = 0.02;
 export const SUCK_EMIT = 0;
-export const TEX_TINT = new Color(168, 168, 168, 255);
+export const TEX_TINT = new Color(178, 178, 178, 255);
+
+export const LOOK_TOY = { roughness: 0.48, metallic: 0.02, emit: 0 };
+export const LOOK_WOOD = { roughness: 0.58, metallic: 0.02, emit: 0 };
+export const LOOK_GRASS = { roughness: 0.72, metallic: 0.0, emit: 0 };
+export const LOOK_JELLY = { roughness: 0.32, metallic: 0.0, emit: 0.08 };
 
 let fx: EffectAsset | null = null;
 let boot: Promise<void> | null = null;

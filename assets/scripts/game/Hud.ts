@@ -164,20 +164,19 @@ export class Hud {
 
   private _buildHome(): Node {
     const n = uiNode('Home', this.root, DESIGN_W, DESIGN_H);
-    fill(n, new Color(255, 214, 140, 255));
-    const card = uiNode('Card', n, 860, 720);
-    card.setPosition(0, 80, 0);
+    const card = uiNode('Card', n, 860, 640);
+    card.setPosition(0, 220, 0);
     fill(card, Theme.panel, 36);
     stroke(card, Theme.slotStroke, 8, 36);
     const t1 = label(card, 't1', '抓大鹅', 92, Theme.accent, 760, 120);
-    t1.node.setPosition(0, 180, 0);
+    t1.node.setPosition(0, 170, 0);
     const t2 = label(card, 't2', '捡了个啥', 48, Theme.ink, 760, 70);
-    t2.node.setPosition(0, 80, 0);
+    t2.node.setPosition(0, 78, 0);
     const t3 = label(card, 't3', '点选箱中物品，三个相同即可消除\n栏满七格且凑不齐就失败', 30, Theme.ink, 760, 120);
     t3.node.setPosition(0, -20, 0);
     t3.overflow = Label.Overflow.RESIZE_HEIGHT;
     const play = button(card, 'play', '开始抓', 420, 120, Theme.accent, Color.WHITE, () => this._handlers.onPlay());
-    play.setPosition(0, -200, 0);
+    play.setPosition(0, -180, 0);
     return n;
   }
 
@@ -185,7 +184,7 @@ export class Hud {
     const n = uiNode('Play', this.root, DESIGN_W, DESIGN_H);
     const lvWrap = uiNode('LvWrap', n, 360, 72);
     paintWoodBoard(lvWrap, 360, 72, 14);
-    this._levelLb = label(lvWrap, 'lv', '第一箱', 36, Theme.cream, 320, 56);
+    this._levelLb = label(lvWrap, 'lv', '第一箱', 36, Theme.ink, 320, 56);
 
     this._slotBar = uiNode('SlotBar', n, 1020, 176);
     paintWoodBoard(this._slotBar, 1020, 176, 22);
@@ -201,7 +200,7 @@ export class Hud {
     this._outBar = uiNode('OutBar', n, 520, 128);
     paintWoodBoard(this._outBar, 520, 128, 16);
     this._outBar.active = false;
-    this._outCount = label(this._outBar, 'cnt', '', 24, Theme.cream, 200, 32);
+    this._outCount = label(this._outBar, 'cnt', '', 24, Theme.ink, 200, 32);
     this._outCount.node.setPosition(0, 44, 0);
     for (let i = 0; i < 3; i++) {
       const slot = uiNode(`o${i}`, this._outBar, 88, 88);

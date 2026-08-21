@@ -71,7 +71,7 @@ export function label(
   lb.horizontalAlign = Label.HorizontalAlign.CENTER;
   lb.verticalAlign = Label.VerticalAlign.CENTER;
   const ol = n.addComponent(LabelOutline);
-  ol.color = new Color(40, 22, 10, 90);
+  ol.color = new Color(255, 140, 200, 70);
   ol.width = 2;
   return lb;
 }

@@ -169,13 +169,13 @@ CCProgram brick-fs %{
     vec3 N = normalize(v_worldN);
     vec3 V = normalize(cc_cameraPos.xyz - v_worldP);
     vec3 L = normalize(-cc_mainLitDir.xyz);
-    float NL = max(dot(N, L), 0.0);
+    float NL = clamp((dot(N, L) + 0.25) / 1.25, 0.0, 1.0);
     float NV = max(abs(dot(N, V)), 0.0);
 
     specular = BRDFApprox(specular, roughness, NV);
     vec3 H = normalize(L + V);
     float NH = max(dot(N, H), 0.0);
-    float specTerm = (roughness * 0.25 + 0.25) * GGXMobile(roughness, NH, H, N);
+    float specTerm = (roughness * 0.18 + 0.14) * GGXMobile(roughness, NH, H, N);
 
     vec3 lightingColor = NL * cc_mainLitColor.rgb * cc_mainLitColor.w;
     vec3 finalColor = lightingColor * (diffuse * INV_PI + specular * specTerm);
@@ -189,7 +189,11 @@ CCProgram brick-fs %{
     vec3 env = mix(cc_ambientSky.rgb, cc_ambientGround.rgb, fEnv);
     finalColor += env * cc_ambientSky.w * specular;
 
+    float fres = pow(clamp(1.0 - NV, 0.0, 1.0), 2.8);
+    finalColor += albedo * fres * 0.05;
     finalColor += emissive.rgb * emit;
+    float peak = max(finalColor.r, max(finalColor.g, finalColor.b));
+    finalColor *= 1.0 - smoothstep(0.58, 1.12, peak) * 0.34;
     return CCFragOutput(vec4(finalColor, mainColor.a));
   }
 }%

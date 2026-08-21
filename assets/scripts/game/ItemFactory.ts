@@ -17,7 +17,8 @@ import { ITEM_DEFS, ItemDef, ItemKind } from './ItemDef';
 import { originWorldSize, spawnOriginModel } from './OriginModels';
 import { skinOf } from './SkinTex';
 import { ITEM_PHYS } from './Theme';
-import { muteShadow, toyMat } from './ToyLit';
+import { decorateCandyWorld } from './CandyWorld';
+import { LOOK_GRASS, LOOK_WOOD, muteShadow, toyMat } from './ToyLit';
 
 const meshCache = new Map<string, ReturnType<typeof utils.MeshUtils.createMesh>>();
 let physMat: PhysicsMaterial | null = null;
@@ -341,6 +342,7 @@ function wall(
     const mr = n.addComponent(MeshRenderer);
     mr.mesh = meshOf('box', { w: size.x, h: size.y, l: size.z });
     applyMeshMat(mr, skin, undefined, {
+      ...LOOK_WOOD,
       tile: opts?.tile ?? new Vec4(Math.max(1, size.x * 0.45), Math.max(1, size.y * 0.45), 0, 0),
     });
   }
@@ -367,6 +369,7 @@ export function createArena(parent: Node, boxScale = 1): Node {
   const gmr = ground.addComponent(MeshRenderer);
   gmr.mesh = meshOf('box', { w: 28, h: 0.3, l: 28 });
   applyMeshMat(gmr, 'grass', undefined, {
+    ...LOOK_GRASS,
     tile: new Vec4(8, 8, 0, 0),
   });
   const gb = ground.addComponent(RigidBody);
@@ -435,6 +438,7 @@ export function createArena(parent: Node, boxScale = 1): Node {
     tile: new Vec4(2.4, 0.35, 0, 0),
   });
 
+  decorateCandyWorld(arena);
   return arena;
 }
 

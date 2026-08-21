@@ -15,7 +15,7 @@ import {
   utils,
 } from 'cc';
 import { ITEM_DEFS, ItemKind } from './ItemDef';
-import { TEX_TINT, muteShadow, toyMat, toyUnlit } from './ToyLit';
+import { LOOK_TOY, TEX_TINT, muteShadow, toyMat, toyUnlit } from './ToyLit';
 
 type GeoJson = {
   positions: number[];
@@ -80,6 +80,7 @@ function skinMat(tex: Texture2D | null, tint: Color, name: string, ui = false): 
       name,
       tex,
       color: tex ? TEX_TINT : tint,
+      ...LOOK_TOY,
     });
   matCache.set(key, mat);
   return mat;

@@ -4,10 +4,13 @@ import { label, markUi, uiNode } from './UiKit';
 
 export type WoodToolKind = 'out' | 'collect' | 'chaos';
 
-const GRAIN = new Color(160, 96, 46, 72);
-const HIGH = new Color(255, 214, 156, 58);
-const WELL = new Color(92, 52, 26, 255);
-const WELL_IN = new Color(232, 196, 148, 255);
+const GRAIN = new Color(255, 180, 220, 40);
+const HIGH = new Color(255, 255, 255, 90);
+const WELL = new Color(255, 168, 214, 255);
+const WELL_IN = new Color(255, 240, 248, 255);
+const CANDY_RIM = new Color(255, 128, 196, 255);
+const CANDY_MID = new Color(255, 214, 236, 255);
+const CANDY_FACE = new Color(255, 248, 252, 255);
 
 export function paintWoodBoard(node: Node, w: number, h: number, radius = 18): void {
   node.getComponent(UITransform)?.setContentSize(w, h);
@@ -15,16 +18,16 @@ export function paintWoodBoard(node: Node, w: number, h: number, radius = 18): v
   g.clear();
   const hw = w * 0.5;
   const hh = h * 0.5;
-  g.fillColor = new Color(48, 24, 10, 80);
+  g.fillColor = new Color(255, 120, 196, 70);
   g.roundRect(-hw + 8, -hh - 10, w, h, radius);
   g.fill();
-  g.fillColor = Theme.woodRim;
+  g.fillColor = CANDY_RIM;
   g.roundRect(-hw, -hh, w, h, radius);
   g.fill();
-  g.fillColor = Theme.woodDark;
+  g.fillColor = CANDY_MID;
   g.roundRect(-hw + 4, -hh + 4, w - 8, h - 10, radius - 3);
   g.fill();
-  g.fillColor = Theme.wood;
+  g.fillColor = CANDY_FACE;
   g.roundRect(-hw + 8, -hh + 10, w - 16, h - 20, radius - 5);
   g.fill();
   g.strokeColor = GRAIN;
@@ -62,16 +65,26 @@ export function paintWoodToken(node: Node, kind: WoodToolKind): void {
   const g = node.getComponent(Graphics) ?? node.addComponent(Graphics);
   g.clear();
   const r = 62;
-  g.fillColor = new Color(48, 24, 10, 70);
+  const skin = kind === 'out'
+    ? new Color(80, 220, 255, 255)
+    : kind === 'collect'
+      ? new Color(255, 110, 196, 255)
+      : new Color(255, 206, 72, 255);
+  const skinDeep = kind === 'out'
+    ? new Color(40, 170, 220, 255)
+    : kind === 'collect'
+      ? new Color(230, 70, 160, 255)
+      : new Color(236, 168, 36, 255);
+  g.fillColor = new Color(255, 120, 196, 60);
   g.circle(3, -5, r);
   g.fill();
-  g.fillColor = Theme.woodRim;
+  g.fillColor = Color.WHITE;
   g.circle(0, 0, r);
   g.fill();
-  g.fillColor = Theme.woodDark;
+  g.fillColor = skinDeep;
   g.circle(0, 0, 54);
   g.fill();
-  g.fillColor = Theme.wood;
+  g.fillColor = skin;
   g.circle(0, 2, 46);
   g.fill();
   g.fillColor = HIGH;
@@ -138,12 +151,12 @@ export function woodTool(
   const badge = uiNode('badge', disc, 40, 40);
   badge.setPosition(42, 42, 0);
   const bg = badge.addComponent(Graphics);
-  bg.fillColor = Theme.woodRim;
+  bg.fillColor = new Color(255, 92, 168, 255);
   bg.circle(0, 0, 18);
   bg.fill();
   const cnt = label(badge, 'cnt', '', 22, Theme.cream, 36, 32);
   cnt.node.setPosition(0, 0, 0);
-  const titleLb = label(root, 'title', title, 30, Theme.cream, 156, 40);
+  const titleLb = label(root, 'title', title, 30, Theme.ink, 156, 40);
   titleLb.node.setPosition(0, -74, 0);
   root.addComponent(UIOpacity);
   return root;
