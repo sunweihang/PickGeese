@@ -164,7 +164,7 @@ export class GameController {
     const wait = this._level === 0 ? 0.25 : 1.85;
     this._delay(wait, () => {
       if (this._phase !== 'play') return;
-      this._restVisiblePile();
+      this._applyPileRoles(this._targetLive());
       this._canOperate = true;
       if (this._level === 0) this._hud?.tip('点箱里的物品，三个相同会消除');
     });
@@ -173,8 +173,9 @@ export class GameController {
   private _spawnLevel(): void {
     const spec = LEVELS[this._level];
     const kinds: ItemKind[] = [];
+    const copies = Math.max(3, spec.copies - (spec.copies % 3));
     for (const k of spec.kinds) {
-      for (let i = 0; i < spec.copies; i++) kinds.push(k);
+      for (let i = 0; i < copies; i++) kinds.push(k);
     }
     shuffle(kinds);
     this._total = kinds.length;
@@ -250,10 +251,73 @@ export class GameController {
       .start();
   }
 
+  /** Original gameStart: ~90 live on box 1, then pop 30 so ~60 stay DYNAMIC on the big box. */
+  private _targetLive(): number {
+    if (this._level <= 0) return 0;
+    return this._level >= 2 ? 60 : 90;
+  }
+
+  private _liveDynamicCount(): number {
+    let n = 0;
+    for (const it of this._boxItems) {
+      if (it.node.isValid && !it.buried && it.body.isValid && it.body.type === ERigidBodyType.DYNAMIC) n++;
+    }
+    return n;
+  }
+
+  private _pileItems(): GameItem[] {
+    const pile: GameItem[] = [];
+    for (const it of this._boxItems) {
+      if (it.node.isValid && !it.buried) pile.push(it);
+    }
+    return pile;
+  }
+
+  private _applyPileRoles(live: number): void {
+    if (this._level === 0) {
+      this._restVisiblePile();
+      return;
+    }
+    const pile = this._pileItems();
+    pile.sort((a, b) => b.node.position.y - a.node.position.y);
+    for (let i = 0; i < pile.length; i++) {
+      if (i < live) setItemKinematic(pile[i], false);
+      else freezeItem(pile[i]);
+    }
+  }
+
   private _restVisiblePile(): void {
     for (const it of this._boxItems) {
       if (!it.node.isValid || it.buried) continue;
       freezeItem(it);
+    }
+  }
+
+  /** Original removeItemFromBox: remaining DYNAMIC keep falling; promote highest STATIC as the pile shrinks. */
+  private _promoteAfterPick(): void {
+    if (this._level === 0) return;
+    const total = this._boxItems.length;
+    const live = this._liveDynamicCount();
+    let need = 0;
+    if (total >= 150 && total < 300) {
+      if (live < 50) need = 6;
+    } else if (total >= 70 && total < 150) {
+      if (live < 40) need = 40 - live;
+    } else if (total < 70) {
+      if (live < 30) need = 30 - live;
+    }
+    const bed: GameItem[] = [];
+    for (const it of this._boxItems) {
+      if (!it.node.isValid || it.buried || !it.body.isValid) continue;
+      if (it.body.type === ERigidBodyType.DYNAMIC) it.body.wakeUp();
+      else bed.push(it);
+    }
+    if (need <= 0) return;
+    bed.sort((a, b) => a.node.position.y - b.node.position.y);
+    for (let i = 0; i < need && bed.length > 0; i++) {
+      const it = bed.pop();
+      if (!it) break;
+      setItemKinematic(it, false);
     }
   }
 
@@ -271,7 +335,6 @@ export class GameController {
       );
       it.body.setLinearVelocity(Vec3.ZERO);
       it.body.setAngularVelocity(Vec3.ZERO);
-      if (this._canOperate) freezeItem(it);
     }
   }
 
@@ -352,7 +415,9 @@ export class GameController {
     if (!item.inBox && !item.inOut) return;
     if (this._selected.includes(item)) return;
 
+    const fromBox = item.inBox;
     this._removeFromBox(item);
+    if (fromBox) this._promoteAfterPick();
     item.inBox = false;
     item.inOut = false;
     item.landed = false;
@@ -625,7 +690,7 @@ export class GameController {
     this._hud?.tip('打乱！');
     this._delay(1.6, () => {
       if (this._phase !== 'play') return;
-      this._restVisiblePile();
+      this._applyPileRoles(this._targetLive());
       this._canOperate = true;
     });
   }
@@ -659,8 +724,8 @@ export class GameController {
     this._shakeReady = false;
     const live: GameItem[] = [];
     for (const it of this._boxItems) {
-      if (!it.node.isValid || it.buried) continue;
-      setItemKinematic(it, false);
+      if (!it.node.isValid || it.buried || !it.body.isValid) continue;
+      if (it.body.type !== ERigidBodyType.DYNAMIC) continue;
       live.push(it);
     }
     const n = Math.max(1, live.length);
@@ -671,7 +736,6 @@ export class GameController {
       it.body.applyForce(f);
     }
     this._delay(1.2, () => {
-      if (this._phase === 'play') this._restVisiblePile();
       this._shakeReady = true;
     });
   }

@@ -156,6 +156,7 @@ export const ALL_KINDS = Object.keys(ITEM_DEFS) as ItemKind[];
 export type LevelSpec = {
   title: string;
   kinds: ItemKind[];
+  /** Per-kind count. Must be a multiple of 3 or leftovers cannot be cleared. */
   copies: number;
   dropHeight: number;
   boxScale: number;
@@ -174,7 +175,7 @@ export const LEVELS: LevelSpec[] = [
   {
     title: '第一箱',
     kinds: ALL_KINDS,
-    copies: 16,
+    copies: 15,
     dropHeight: 5.8,
     boxScale: 1,
     spread: 4.6,
