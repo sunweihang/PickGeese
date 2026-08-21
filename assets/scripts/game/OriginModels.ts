@@ -157,6 +157,27 @@ export function originMeshSize(kind: ItemKind): Vec3 | null {
   return pack.get(def.model)?.size.clone() ?? null;
 }
 
+export function originVisScale(kind: ItemKind): number {
+  const def = ITEM_DEFS[kind];
+  const data = pack.get(def.model);
+  if (!data) return 1;
+  return (def.size * 2.15) / data.extent;
+}
+
+/** World AABB after the mesh child's -90° X rotation and vis scale. */
+export function originWorldSize(kind: ItemKind): Vec3 {
+  const def = ITEM_DEFS[kind];
+  const data = pack.get(def.model);
+  if (!data) return new Vec3(0.8, 0.8, 0.8);
+  const s = originVisScale(kind);
+  return new Vec3(data.size.x * s, data.size.z * s, data.size.y * s);
+}
+
+export function originWorldRadius(kind: ItemKind): number {
+  const w = originWorldSize(kind);
+  return 0.5 * Math.sqrt(w.x * w.x + w.y * w.y + w.z * w.z);
+}
+
 export function spawnOriginModel(kind: ItemKind, parent: Node): Node | null {
   const def = ITEM_DEFS[kind];
   const data = pack.get(def.model);

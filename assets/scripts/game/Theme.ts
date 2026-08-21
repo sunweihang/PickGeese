@@ -24,7 +24,7 @@ export const Theme = {
 };
 
 export const ITEM_PHYS = {
-  friction: 0.62,
-  restitution: 0.08,
+  friction: 0.72,
+  restitution: 0.02,
   mass: 1.1,
 };

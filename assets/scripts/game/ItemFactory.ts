@@ -14,7 +14,7 @@ import {
   utils,
 } from 'cc';
 import { ITEM_DEFS, ItemDef, ItemKind } from './ItemDef';
-import { originMeshSize, spawnOriginModel } from './OriginModels';
+import { originWorldRadius, originWorldSize, spawnOriginModel } from './OriginModels';
 import { skinOf } from './SkinTex';
 import { ITEM_PHYS } from './Theme';
 import { muteShadow, toyMat } from './ToyLit';
@@ -211,16 +211,16 @@ type BodyImpl = {
   setMaxDepenetrationVelocity?: (v: number) => void;
 };
 
-/** Original itemPhys: linear 0.7 / angular 0.5, maxLin 5, maxAng 50, depen 1.5. */
-export function tuneItemBody(body: RigidBody): void {
+/** Original itemPhys: linear 0.7 / angular 0.5. Settle uses a higher depen so overlaps push apart. */
+export function tuneItemBody(body: RigidBody, settle = true): void {
   body.linearDamping = 0.7;
   body.angularDamping = 0.5;
   body.allowSleep = true;
   body.sleepThreshold = 0.35;
   const impl = (body as unknown as { body?: { impl?: BodyImpl } }).body?.impl;
-  impl?.setMaxLinearVelocity?.(5);
+  impl?.setMaxLinearVelocity?.(settle ? 10 : 5);
   impl?.setMaxAngularVelocity?.(50);
-  impl?.setMaxDepenetrationVelocity?.(1.5);
+  impl?.setMaxDepenetrationVelocity?.(settle ? 8 : 1.5);
 }
 
 export function freezeItem(item: GameItem): void {
@@ -265,13 +265,74 @@ function addFallbackCollider(node: Node, def: ItemDef, pm: PhysicsMaterial): voi
 }
 
 function addMeshCollider(root: Node, kind: ItemKind): boolean {
-  const vis = root.getChildByName('mesh');
-  const size = originMeshSize(kind);
-  if (!vis || !size) return false;
-  const col = vis.addComponent(BoxCollider);
-  col.size = new Vec3(Math.max(0.08, size.x * 0.88), Math.max(0.08, size.y * 0.88), Math.max(0.08, size.z * 0.88));
+  const r = originWorldRadius(kind);
+  if (r <= 0) return false;
+  const col = root.addComponent(SphereCollider);
+  col.radius = Math.max(0.2, r * 1.04);
   col.material = getPhysMat();
   return true;
+}
+
+/** Non-overlapping lattice inside the crate. Yaw-only so models sit, not stab through neighbors. */
+export function packCratePositions(kinds: ItemKind[], half: number, floorY = 0.56): Vec3[] {
+  const out: Vec3[] = [];
+  const placed: { x: number; z: number; r: number }[] = [];
+  let layerY = floorY;
+  let i = 0;
+  let guard = 0;
+  while (i < kinds.length && guard++ < 40) {
+    placed.length = 0;
+    let layerH = 0.55;
+    let placedThis = 0;
+    while (i < kinds.length) {
+      const r = Math.max(0.22, originWorldRadius(kinds[i]) * 1.08);
+      const h = Math.max(0.28, originWorldSize(kinds[i]).y * 0.5);
+      const min = -half + r;
+      const max = half - r;
+      if (max < min) break;
+      const step = Math.max(0.2, r * 0.62);
+      let found = false;
+      search: for (let z = min; z <= max + 1e-4; z += step) {
+        for (let x = min; x <= max + 1e-4; x += step) {
+          let ok = true;
+          for (let p = 0; p < placed.length; p++) {
+            const dx = x - placed[p].x;
+            const dz = z - placed[p].z;
+            const need = r + placed[p].r;
+            if (dx * dx + dz * dz < need * need) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) continue;
+          placed.push({ x, z, r });
+          out.push(new Vec3(x, layerY + h, z));
+          layerH = Math.max(layerH, h * 2);
+          placedThis++;
+          i++;
+          found = true;
+          break search;
+        }
+      }
+      if (!found) break;
+    }
+    if (placedThis === 0) {
+      const r = Math.max(0.22, originWorldRadius(kinds[i]) * 1.08);
+      const h = Math.max(0.28, originWorldSize(kinds[i]).y * 0.5);
+      out.push(new Vec3(0, layerY + h, 0));
+      i++;
+      layerY += h * 2 + 0.06;
+      continue;
+    }
+    layerY += layerH + 0.05;
+  }
+  return out;
+}
+
+export function pileQuat(): Quat {
+  const q = new Quat();
+  Quat.fromEuler(q, 0, Math.random() * 360, 0);
+  return q;
 }
 
 export function createItem(kind: ItemKind, parent: Node): GameItem {

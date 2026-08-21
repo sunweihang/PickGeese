@@ -20,7 +20,17 @@ import {
 import { applyPortraitCameraRect, portraitVisibleSize } from './PortraitFit';
 import { Hud } from './Hud';
 import { ITEM_DEFS, ItemKind, LEVELS } from './ItemDef';
-import { GameItem, crateLimitHalf, crateLimitTop, createArena, createItem, freezeItem, randomQuat, setItemKinematic } from './ItemFactory';
+import {
+  GameItem,
+  crateLimitHalf,
+  crateLimitTop,
+  createArena,
+  createItem,
+  freezeItem,
+  packCratePositions,
+  pileQuat,
+  setItemKinematic,
+} from './ItemFactory';
 import { preloadOriginModels } from './OriginModels';
 import { MATCH_COUNT, SLOT_COUNT } from './Theme';
 import { preloadToyLit } from './ToyLit';
@@ -170,7 +180,6 @@ export class GameController {
     }
     shuffle(kinds);
     this._total = kinds.length;
-    const inner = (spec.spread ?? 5.2) * spec.boxScale;
     if (this._level === 0) {
       const spots = [
         new Vec3(-1.35, 0.82, 0.05),
@@ -196,13 +205,12 @@ export class GameController {
       }
       return;
     }
+    const spots = packCratePositions(kinds, crateLimitHalf * 0.96, 0.56);
     for (let i = 0; i < kinds.length; i++) {
       const item = createItem(kinds[i], this._objGroup);
-      const x = (Math.random() - 0.5) * inner;
-      const z = (Math.random() - 0.5) * inner;
-      const y = 0.7 + spec.dropHeight * (i / kinds.length) + Math.random() * 0.45;
-      item.node.setPosition(x, y, z);
-      item.node.setRotation(randomQuat());
+      const p = spots[i] ?? new Vec3(0, 0.8 + i * 0.35, 0);
+      item.node.setPosition(p.x, p.y + 0.08, p.z);
+      item.node.setRotation(pileQuat());
       this._items.push(item);
       this._boxItems.push(item);
     }
@@ -604,19 +612,16 @@ export class GameController {
     this._chaosLeft--;
     this._hud?.setToolCounts(this._outLeft, this._collectLeft, this._chaosLeft);
     this._canOperate = false;
-    const spec = LEVELS[this._level];
-    const spread = Math.min((spec.spread ?? 3.4) * spec.boxScale, crateLimitHalf * 1.7);
     shuffle(this._boxItems);
+    const kinds = this._boxItems.map((it) => it.def.id);
+    const spots = packCratePositions(kinds, crateLimitHalf * 0.96, 0.56);
     for (let i = 0; i < this._boxItems.length; i++) {
       const it = this._boxItems[i];
       setItemKinematic(it, false);
-      const x = (Math.random() - 0.5) * spread;
-      const z = (Math.random() - 0.5) * spread;
-      const y = 0.85 + Math.min(1.6, spec.dropHeight * 0.22) * (i / this._boxItems.length);
-      it.node.setPosition(x, y, z);
-      it.node.setRotation(randomQuat());
+      const p = spots[i] ?? it.node.position;
+      it.node.setPosition(p.x, p.y + 0.1, p.z);
+      it.node.setRotation(pileQuat());
       it.body.wakeUp();
-      it.body.applyForce(new Vec3((Math.random() - 0.5) * 10, 6 + Math.random() * 5, (Math.random() - 0.5) * 10));
     }
     this._hud?.tip('打乱！');
     this._delay(1.2, () => {
