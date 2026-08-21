@@ -1,0 +1,9 @@
+{
+  "name": "PickGeese",
+  "uuid": "c8e4a91b-2d3f-4a6e-9c1b-7f5e2d8a4b06",
+  "creator": {
+    "version": "3.8.8"
+  },
+  "version": "1.0.0",
+  "description": "抓大鹅 / 捡了个啥 — Cocos Creator 3.8.8 3D, 1080x1920"
+}

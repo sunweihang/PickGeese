@@ -1,0 +1,188 @@
+[
+  {
+    "id": "shuitong",
+    "src": "module/beach/model/500_Bucket/shuitong",
+    "extent": 0.5900097787380219,
+    "tex": "skins/shuitong.png"
+  },
+  {
+    "id": "519_Whistle",
+    "src": "module/beach/model/519_Whistle/519_Whistle",
+    "extent": 2.1865074634552,
+    "tex": "skins/519_Whistle.jpg"
+  },
+  {
+    "id": "506_Polaroid",
+    "src": "module/beach/model/506_Polaroid/506_Polaroid",
+    "extent": 0.9985700487159193,
+    "tex": "skins/506_Polaroid.jpg"
+  },
+  {
+    "id": "511_YellowDuck",
+    "src": "module/beach/model/511_YellowDuuk/511_YellowDuck",
+    "extent": 1.0890651941299438,
+    "tex": "skins/511_YellowDuck.jpg"
+  },
+  {
+    "id": "520_Shell",
+    "src": "module/beach/model/520_Shell/520_Shell",
+    "extent": 1.183384895324707,
+    "tex": "skins/520_Shell.jpg"
+  },
+  {
+    "id": "a09_Drink",
+    "src": "module/beach/model/530_Drink/a09_Drink",
+    "extent": 0.9808084070682526,
+    "tex": "skins/a09_Drink.jpg"
+  },
+  {
+    "id": "508_SmallShovel",
+    "src": "module/beach/model/508_SmallShovel/508_SmallShovel",
+    "extent": 1.0001775026321411,
+    "tex": "skins/508_SmallShovel.jpg"
+  },
+  {
+    "id": "a08_Beer",
+    "src": "module/beach/model/529_Beer/a08_Beer",
+    "extent": 1.0002930164337158,
+    "tex": "skins/a08_Beer.jpg"
+  },
+  {
+    "id": "a03_LifeJacket",
+    "src": "module/beach/model/527_LifeJacket/a03_LifeJacket",
+    "extent": 0.9796992540359497,
+    "tex": "skins/a03_LifeJacket.jpg"
+  },
+  {
+    "id": "502_Volleyball",
+    "src": "module/beach/model/502_Volleyball/502_Volleyball",
+    "extent": 1.012481451034546,
+    "tex": "skins/502_Volleyball.jpg"
+  },
+  {
+    "id": "516_Turtle",
+    "src": "module/beach/model/516_Turtle/516_Turtle",
+    "extent": 1.3998139202594757,
+    "tex": "skins/516_Turtle.jpg"
+  },
+  {
+    "id": "515_Octopuses",
+    "src": "module/beach/model/515_Octopuses/515_Octopuses",
+    "extent": 0.9810521602630615,
+    "tex": "skins/515_Octopuses.jpg"
+  },
+  {
+    "id": "512_Conch",
+    "src": "module/beach/model/512_Conch/512_Conch",
+    "extent": 1.2187544703483582,
+    "tex": "skins/512_Conch.jpg"
+  },
+  {
+    "id": "507_Wishingbot",
+    "src": "module/beach/model/507_Wishingbot/507_Wishingbot",
+    "extent": 0.9820120334625244,
+    "tex": "skins/507_Wishingbot.jpg"
+  },
+  {
+    "id": "525_Seahorse",
+    "src": "module/beach/model/525_Seahorse/525_Seahorse",
+    "extent": 0.9759323298931122,
+    "tex": "skins/525_Seahorse.jpg"
+  },
+  {
+    "id": "514_Starfish",
+    "src": "module/beach/model/514_Starfish/514_Starfish",
+    "extent": 0.9887465834617615,
+    "tex": "skins/514_Starfish.jpg"
+  },
+  {
+    "id": "518_Pearl",
+    "src": "module/beach/model/518_Pearl/518_Pearl",
+    "extent": 0.9771426320075989,
+    "tex": "skins/518_Pearl.jpg"
+  },
+  {
+    "id": "a06_CosmeticBag",
+    "src": "module/beach/model/528_CosmeticBag/a06_CosmeticBag",
+    "extent": 1.2430986762046814,
+    "tex": "skins/a06_CosmeticBag.jpg"
+  },
+  {
+    "id": "01_low001",
+    "src": "module/beach/model/501_Trolley/01_low001",
+    "extent": 2.3532179594039917,
+    "tex": "skins/01_low001.jpg"
+  },
+  {
+    "id": "510_CoconutMilK",
+    "src": "module/beach/model/510_CoconutM/510_CoconutMilK",
+    "extent": 1.2576971650123596,
+    "tex": "skins/510_CoconutMilK.jpg"
+  },
+  {
+    "id": "521_Stone",
+    "src": "module/beach/model/521_Stone/521_Stone",
+    "extent": 1.9935939311981201,
+    "tex": "skins/521_Stone.jpg"
+  },
+  {
+    "id": "a01_OxygenCylinder",
+    "src": "module/beach/model/526_OxygenCylinder/a01_OxygenCylinder",
+    "extent": 0.9932388067245483,
+    "tex": "skins/a01_OxygenCylinder.jpg"
+  },
+  {
+    "id": "505_Icicle",
+    "src": "module/beach/model/505_Icicle/505_Icicle",
+    "extent": 1.0012050867080688,
+    "tex": "skins/505_Icicle.jpg"
+  },
+  {
+    "id": "509_NailRake",
+    "src": "module/beach/model/509_NailRake/509_NailRake",
+    "extent": 0.9995545148849487,
+    "tex": "skins/509_NailRake.jpg"
+  },
+  {
+    "id": "517_WaterGun",
+    "src": "module/beach/model/517_WaterGun/517_WaterGun",
+    "extent": 1.311961054801941,
+    "tex": "skins/517_WaterGun.jpg"
+  },
+  {
+    "id": "522_Popsicles",
+    "src": "module/beach/model/522_Popsicles/522_Popsicles",
+    "extent": 0.9964861869812012,
+    "tex": "skins/522_Popsicles.jpg"
+  },
+  {
+    "id": "524_BuildingBlocks",
+    "src": "module/beach/model/524_BuildingBlocks/524_BuildingBlocks",
+    "extent": 1.2297189235687256,
+    "tex": "skins/524_BuildingBlocks.jpg"
+  },
+  {
+    "id": "503_WateringCan",
+    "src": "module/beach/model/503_WateringCan/503_WateringCan",
+    "extent": 1.2676361501216888,
+    "tex": "skins/503_WateringCan.jpg"
+  },
+  {
+    "id": "513_Crab",
+    "src": "module/beach/model/513_Crab/513_Crab",
+    "extent": 1.4395878314971924,
+    "tex": "skins/513_Crab.jpg"
+  },
+  {
+    "id": "504_IceCream",
+    "src": "module/beach/model/504_IceCream/504_IceCream",
+    "extent": 1.0424697399139404,
+    "tex": "skins/504_IceCream.jpg"
+  },
+  {
+    "id": "01_low",
+    "src": "module/beach/model/523_ToyGuitar/01_low",
+    "extent": 0.9894502758979797,
+    "tex": "skins/01_low.jpg"
+  }
+]
