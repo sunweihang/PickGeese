@@ -20,7 +20,7 @@ import {
 import { applyPortraitCameraRect, portraitVisibleSize } from './PortraitFit';
 import { Hud } from './Hud';
 import { ITEM_DEFS, ItemKind, LEVELS } from './ItemDef';
-import { GameItem, crateLimitHalf, crateLimitTop, createArena, createItem, randomQuat, setItemKinematic } from './ItemFactory';
+import { GameItem, crateLimitHalf, crateLimitTop, createArena, createItem, freezeItem, randomQuat, setItemKinematic } from './ItemFactory';
 import { preloadOriginModels } from './OriginModels';
 import { MATCH_COUNT, SLOT_COUNT } from './Theme';
 import { preloadToyLit } from './ToyLit';
@@ -94,8 +94,9 @@ export class GameController {
     this._uiCam = this._scene.getChildByName('Canvas')?.getChildByName('Camera')?.getComponent(Camera) ?? null;
     this._ensureFlyCam();
     if (PhysicsSystem.instance) {
-      PhysicsSystem.instance.gravity = new Vec3(0, -20, 0);
+      PhysicsSystem.instance.gravity = new Vec3(0, -10, 0);
       PhysicsSystem.instance.allowSleep = true;
+      PhysicsSystem.instance.sleepThreshold = 0.4;
     } else {
       console.error('PickGeese: 3D physics is off. Enable physics-ammo in Project Settings.');
     }
@@ -152,9 +153,10 @@ export class GameController {
     this._hud?.setSlots([]);
     this._hud?.setOutSlots([]);
     this._refreshCounts();
-    const wait = this._level === 0 ? 0.25 : 1.35;
+    const wait = this._level === 0 ? 0.25 : 1.8;
     this._delay(wait, () => {
       if (this._phase !== 'play') return;
+      this._freezeBoxPile();
       this._canOperate = true;
       if (this._level === 0) this._hud?.tip('点箱里的物品，三个相同会消除');
     });
@@ -238,25 +240,36 @@ export class GameController {
       .start();
   }
 
+  private _freezeBoxPile(): void {
+    for (const it of this._boxItems) {
+      if (!it.node.isValid) continue;
+      freezeItem(it);
+    }
+  }
+
   private _containBox(): void {
     if (this._phase !== 'play') return;
     const half = crateLimitHalf;
+    const maxY = crateLimitTop + 8;
+    const vel = new Vec3();
     for (const it of this._boxItems) {
-      if (!it.node.isValid) continue;
+      if (!it.node.isValid || !it.body.isValid) continue;
       const p = it.node.position;
-      if (p.x >= -half && p.x <= half && p.z >= -half && p.z <= half && p.y > 0.32 && p.y < 8) {
-        continue;
-      }
-      it.node.setPosition(
-        Math.max(-half, Math.min(half, p.x)),
-        Math.max(0.75, Math.min(crateLimitTop + 1.2, p.y)),
-        Math.max(-half, Math.min(half, p.z)),
-      );
-      if (it.body.isValid) {
+      const out = p.x < -half || p.x > half || p.z < -half || p.z > half || p.y <= 0.32 || p.y >= maxY;
+      if (out) {
+        it.node.setPosition(
+          Math.max(-half, Math.min(half, p.x)),
+          Math.max(0.75, Math.min(crateLimitTop + 1.2, p.y)),
+          Math.max(-half, Math.min(half, p.z)),
+        );
         it.body.setLinearVelocity(Vec3.ZERO);
         it.body.setAngularVelocity(Vec3.ZERO);
-        it.body.wakeUp();
+        if (this._canOperate) freezeItem(it);
+        continue;
       }
+      if (!this._canOperate || it.body.type !== ERigidBodyType.DYNAMIC) continue;
+      it.body.getLinearVelocity(vel);
+      if (vel.lengthSqr() < 0.16) freezeItem(it);
     }
   }
 
@@ -606,8 +619,10 @@ export class GameController {
       it.body.applyForce(new Vec3((Math.random() - 0.5) * 10, 6 + Math.random() * 5, (Math.random() - 0.5) * 10));
     }
     this._hud?.tip('打乱！');
-    this._delay(0.85, () => {
-      if (this._phase === 'play') this._canOperate = true;
+    this._delay(1.2, () => {
+      if (this._phase !== 'play') return;
+      this._freezeBoxPile();
+      this._canOperate = true;
     });
   }
 
@@ -649,6 +664,7 @@ export class GameController {
       it.body.applyForce(f);
     }
     this._delay(1.2, () => {
+      if (this._phase === 'play') this._freezeBoxPile();
       this._shakeReady = true;
     });
   }

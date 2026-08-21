@@ -205,20 +205,45 @@ function decorate(root: Node, def: ItemDef): void {
   root.setScale(s, s, s);
 }
 
+type BodyImpl = {
+  setMaxLinearVelocity?: (v: number) => void;
+  setMaxAngularVelocity?: (v: number) => void;
+  setMaxDepenetrationVelocity?: (v: number) => void;
+};
+
+/** Original itemPhys: linear 0.7 / angular 0.5, maxLin 5, maxAng 50, depen 1.5. */
+export function tuneItemBody(body: RigidBody): void {
+  body.linearDamping = 0.7;
+  body.angularDamping = 0.5;
+  body.allowSleep = true;
+  body.sleepThreshold = 0.35;
+  const impl = (body as unknown as { body?: { impl?: BodyImpl } }).body?.impl;
+  impl?.setMaxLinearVelocity?.(5);
+  impl?.setMaxAngularVelocity?.(50);
+  impl?.setMaxDepenetrationVelocity?.(1.5);
+}
+
+export function freezeItem(item: GameItem): void {
+  if (!item.body.isValid) return;
+  item.body.setLinearVelocity(Vec3.ZERO);
+  item.body.setAngularVelocity(Vec3.ZERO);
+  item.body.type = ERigidBodyType.STATIC;
+  item.body.useGravity = false;
+}
+
 function ensureBody(node: Node, def: ItemDef, skipCollider = false): RigidBody {
   let body = node.getComponent(RigidBody);
   if (body) {
     body.type = ERigidBodyType.DYNAMIC;
     body.useGravity = true;
+    tuneItemBody(body);
     return body;
   }
   body = node.addComponent(RigidBody);
   body.type = ERigidBodyType.DYNAMIC;
   body.mass = def.mass;
-  body.linearDamping = 0.28;
-  body.angularDamping = 0.42;
   body.useGravity = true;
-  body.allowSleep = true;
+  tuneItemBody(body);
   const pm = getPhysMat();
   if (!skipCollider && !node.getComponent(SphereCollider) && !node.getComponent(BoxCollider)) {
     addFallbackCollider(node, def, pm);
@@ -266,10 +291,8 @@ export function createItem(kind: ItemKind, parent: Node): GameItem {
   const body = node.addComponent(RigidBody);
   body.type = ERigidBodyType.DYNAMIC;
   body.mass = def.mass;
-  body.linearDamping = 0.28;
-  body.angularDamping = 0.42;
   body.useGravity = true;
-  body.allowSleep = true;
+  tuneItemBody(body);
 
   const pm = getPhysMat();
   if (def.collider === 'sphere') {
@@ -405,6 +428,7 @@ export function setItemKinematic(item: GameItem, on: boolean): void {
     item.body.setLinearVelocity(Vec3.ZERO);
     item.body.setAngularVelocity(Vec3.ZERO);
   } else {
+    tuneItemBody(item.body);
     item.body.wakeUp();
   }
 }
